@@ -6,13 +6,15 @@
   <title>Matrice con commenti</title>
   <style>
     :root {
-      --bg: #f3f6fb;
+      --bg: #eef2f9;
       --text: #1f2a44;
-      --muted: #5f6f8d;
-      --line: #b8c3d8;
-      --accent: #2f62ff;
-      --bubble: #ffffff;
-      --bubble-line: #c9d6ff;
+      --muted: #4f5f79;
+      --line: #9faecc;
+      --axis: #6f7f9c;
+      --sticky-yellow: #ffe97a;
+      --sticky-green: #c9f3b6;
+      --sticky-pink: #ffd2da;
+      --sticky-blue: #cbe7ff;
     }
 
     * { box-sizing: border-box; }
@@ -29,7 +31,7 @@
       max-width: 1200px;
       margin: 0 auto;
       background: #fff;
-      border: 1px solid #d9e1f2;
+      border: 1px solid #cfd9ee;
       border-radius: 14px;
       overflow: hidden;
       box-shadow: 0 8px 24px rgba(31, 42, 68, 0.08);
@@ -37,7 +39,7 @@
 
     .header {
       padding: 14px 18px;
-      border-bottom: 1px solid #d9e1f2;
+      border-bottom: 1px solid #d4def1;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -57,9 +59,9 @@
     }
 
     .toggle-all {
-      border: 1px solid #b7c8ff;
-      background: #e8efff;
-      color: #2741b9;
+      border: 1px solid #9cb0e8;
+      background: #e3ebff;
+      color: #233a9c;
       border-radius: 8px;
       font-weight: 600;
       padding: 8px 12px;
@@ -73,29 +75,52 @@
     .matrix {
       position: relative;
       height: 640px;
-      border: 1px solid #dbe3f4;
+      border: 1px solid #cad5ec;
       border-radius: 12px;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(240,245,255,0.9), rgba(255,255,255,0.9)),
-        repeating-linear-gradient(0deg, #f5f8ff 0 44px, #ffffff 44px 88px),
-        repeating-linear-gradient(90deg, #f6f9ff 0 44px, #ffffff 44px 88px);
+        linear-gradient(180deg, rgba(243,247,255,0.95), rgba(255,255,255,0.95)),
+        repeating-linear-gradient(0deg, #f8faff 0 46px, #ffffff 46px 92px),
+        repeating-linear-gradient(90deg, #f8fbff 0 46px, #ffffff 46px 92px);
     }
 
     .axis-x, .axis-y {
       position: absolute;
-      background: var(--line);
+      background: var(--axis);
       z-index: 1;
     }
 
-    .axis-x { left: 90px; right: 24px; bottom: 70px; height: 2px; }
-    .axis-y { top: 24px; bottom: 70px; left: 90px; width: 2px; }
+    .axis-x { left: 90px; right: 24px; bottom: 70px; height: 3px; }
+    .axis-y { top: 24px; bottom: 70px; left: 90px; width: 3px; }
+
+    .axis-x::after,
+    .axis-y::after {
+      content: "";
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+
+    .axis-x::after {
+      right: -8px;
+      top: -5px;
+      border-width: 6px 0 6px 9px;
+      border-color: transparent transparent transparent var(--axis);
+    }
+
+    .axis-y::after {
+      top: -8px;
+      left: -5px;
+      border-width: 0 6px 9px 6px;
+      border-color: transparent transparent var(--axis) transparent;
+    }
 
     .label-x, .label-y {
       position: absolute;
-      color: var(--muted);
+      color: #405071;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       z-index: 1;
     }
 
@@ -108,12 +133,12 @@
     }
 
     .pin {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      border: 1px solid #99afff;
-      background: #e8eeff;
-      color: #2549d4;
+      border: 1px solid #2d3f66;
+      background: #ffffff;
+      color: #24324f;
       font-size: 11px;
       font-weight: 700;
       display: grid;
@@ -126,26 +151,42 @@
       position: absolute;
       left: 22px;
       top: -4px;
-      min-width: 220px;
+      min-width: 235px;
       max-width: 320px;
-      background: var(--bubble);
-      border: 1px solid var(--bubble-line);
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(47, 98, 255, 0.16);
-      padding: 8px 10px;
+      background: var(--sticky-yellow);
+      border: 1px solid rgba(111, 96, 15, 0.28);
+      border-radius: 4px;
+      box-shadow: 0 11px 20px rgba(40, 44, 60, 0.18);
+      padding: 10px 12px;
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-4px);
+      transform: translateY(-4px) rotate(-1.1deg);
       transition: .18s ease;
       pointer-events: none;
     }
+
+    .comment-box::before {
+      content: "";
+      position: absolute;
+      width: 54px;
+      height: 14px;
+      top: -8px;
+      left: 14px;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(94, 104, 130, 0.16);
+      transform: rotate(-4deg);
+    }
+
+    .point:nth-child(2n) .comment-box { background: var(--sticky-blue); }
+    .point:nth-child(3n) .comment-box { background: var(--sticky-green); }
+    .point:nth-child(5n) .comment-box { background: var(--sticky-pink); }
 
     .point.right .comment-box { left: auto; right: 22px; }
     .point.down .comment-box { top: 22px; }
 
     .comment-title {
       margin: 0 0 6px;
-      color: #3c4fa7;
+      color: #344161;
       font-size: 10px;
       font-weight: 700;
       letter-spacing: .4px;
@@ -157,7 +198,7 @@
       padding-left: 16px;
       font-size: 12px;
       line-height: 1.4;
-      color: #2c3559;
+      color: #1f2744;
       white-space: pre-wrap;
     }
 
@@ -166,7 +207,7 @@
     .point.persist .comment-box {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0);
+      transform: translateY(0) rotate(-1.1deg);
       pointer-events: auto;
     }
 
@@ -189,8 +230,8 @@
       <div class="matrix" id="matrix">
         <div class="axis-x"></div>
         <div class="axis-y"></div>
-        <div class="label-x">Complessità / effort</div>
-        <div class="label-y">Impatto business</div>
+        <div class="label-x">Impatto business</div>
+        <div class="label-y">Complessità / effort</div>
       </div>
     </section>
   </main>
