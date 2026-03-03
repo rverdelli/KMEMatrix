@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interfaccia con commenti contestuali</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --ink: #1f2a44;
+      --muted: #6f7a90;
+      --accent: #4b67ff;
+      --accent-2: #e8ecff;
+      --line: #dde3f2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #f7f8fd, var(--bg));
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(31, 42, 68, 0.08);
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcff;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toggle-all {
+      border: 1px solid #cfd7ff;
+      background: var(--accent-2);
+      color: #233bb9;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .toggle-all:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(75, 103, 255, 0.18);
+    }
+
+    .canvas {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(75,103,255,0.05) 0, transparent 35%),
+        radial-gradient(circle at 90% 90%, rgba(58,184,124,0.07) 0, transparent 30%),
+        white;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 16px 22px;
+      min-height: 120px;
+      background: linear-gradient(180deg, #fff, #fdfdff);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 90%;
+    }
+
+    .pin {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid #b9c5ff;
+      background: #eef2ff;
+      color: #1f3ad8;
+      font-size: 11px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 3;
+      user-select: none;
+    }
+
+    .comment-box {
+      position: absolute;
+      top: 36px;
+      right: 10px;
+      width: min(320px, 86vw);
+      border: 1px solid #cfd7ff;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(44, 66, 170, 0.16);
+      padding: 10px 12px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-4px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s;
+      z-index: 2;
+    }
+
+    .comment-title {
+      font-size: 11px;
+      color: #4053a8;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin: 0 0 6px;
+    }
+
+    .comment-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 12px;
+      color: #2f3b63;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .pin:hover + .comment-box,
+    .card:focus-within .comment-box,
+    .card.persist .comment-box {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      .canvas { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="topbar">
+      <div>
+        <h1 class="title">Mockup interfaccia con note/commenti</h1>
+        <p class="subtitle">Passa il mouse sui numerini piccoli per vedere il contenuto del commento.</p>
+      </div>
+      <button id="toggleAll" class="toggle-all" aria-pressed="false">Mostra tutti i commenti</button>
+    </div>
+
+    <section class="canvas" id="canvas"></section>
+  </div>
+
+  <script>
+    const commentData = {
+      commentThreads: [
+        { id: "1", comments: [{ body: "- countries to be addressed\n" }] },
+        { id: "2", comments: [
+          { body: "- VA for users outside the HR department, interpreting rightly the Q, and asking proper follow-up question\n" },
+          { body: "- High time consuming\n" },
+          { body: "Wave 1: better questions.\nWave 2: automatic answers.\n" }
+        ]},
+        { id: "3", comments: [{ body: "looking for documents, answer question with information present on document\n" }] },
+        { id: "4", comments: [{ body: "question from customer through salesforce. Retrieve documents (75%) + data\n" }] },
+        { id: "5", comments: [{ body: "- structure information from resume (and interview)\n- bring the application and say \"do i have anyone\"\n" }] },
+        { id: "6", comments: [{ body: "- prioritize the invoice/claims\n- agent supporting the user, eventually preparing the email to send\n" }] },
+        { id: "7", comments: [{ body: "huge effort on retrieving the right data\n" }] },
+        { id: "8", comments: [{ body: "- digitalization of values stream map (better organize data)\n- optimize lead time\n\n" }] },
+        { id: "9", comments: [{ body: "article never asked before. Last hours to weeks. Simplify process. Check past similar articles (and all the info). \n" }] },
+        { id: "10", comments: [{ body: "automation of receiving orders and providing feedback to the customers\n\n" }] }
+      ]
+    };
+
+    const sections = [
+      "Countries to be addressed",
+      "Virtual Assistant HR",
+      "Document Q&A",
+      "Customer requests from Salesforce",
+      "CV and application matching",
+      "Invoice/claim prioritization",
+      "Data retrieval complexity",
+      "Value stream digitalization",
+      "New article creation",
+      "Order feedback automation"
+    ];
+
+    const canvas = document.getElementById('canvas');
+    const cards = [];
+
+    commentData.commentThreads.forEach((thread, idx) => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>${sections[idx] || `Sezione ${thread.id}`}</h3>
+        <p>Area dimostrativa dell'interfaccia. Il numerino in alto a destra rappresenta il thread di commenti collegato.</p>
+        <span class="pin" tabindex="0" aria-label="Commento ${thread.id}">${thread.id}</span>
+        <div class="comment-box" role="note" aria-label="Comment thread ${thread.id}">
+          <p class="comment-title">Commento #${thread.id}</p>
+          <ul class="comment-list">
+            ${thread.comments.map(c => `<li>${c.body.trim()}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+      canvas.appendChild(card);
+      cards.push(card);
+    });
+
+    const toggleBtn = document.getElementById('toggleAll');
+    let allVisible = false;
+
+    toggleBtn.addEventListener('click', () => {
+      allVisible = !allVisible;
+      cards.forEach(card => card.classList.toggle('persist', allVisible));
+      toggleBtn.textContent = allVisible ? 'Nascondi tutti i commenti' : 'Mostra tutti i commenti';
+      toggleBtn.setAttribute('aria-pressed', String(allVisible));
+    });
+  </script>
+</body>
+</html>
