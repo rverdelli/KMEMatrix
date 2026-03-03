@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matrice con commenti</title>
+  <style>
+    :root {
+      --bg: #eef2f9;
+      --text: #1f2a44;
+      --muted: #4f5f79;
+      --line: #9faecc;
+      --axis: #6f7f9c;
+      --sticky-yellow: #ffe97a;
+      --sticky-green: #c9f3b6;
+      --sticky-pink: #ffd2da;
+      --sticky-blue: #cbe7ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #cfd9ee;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(31, 42, 68, 0.08);
+    }
+
+    .header {
+      padding: 14px 18px;
+      border-bottom: 1px solid #d4def1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .header p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toggle-all {
+      border: 1px solid #9cb0e8;
+      background: #e3ebff;
+      color: #233a9c;
+      border-radius: 8px;
+      font-weight: 600;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .matrix-wrap {
+      padding: 18px;
+    }
+
+    .matrix {
+      position: relative;
+      height: 640px;
+      border: 1px solid #cad5ec;
+      border-radius: 12px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(243,247,255,0.95), rgba(255,255,255,0.95)),
+        repeating-linear-gradient(0deg, #f8faff 0 46px, #ffffff 46px 92px),
+        repeating-linear-gradient(90deg, #f8fbff 0 46px, #ffffff 46px 92px);
+    }
+
+    .axis-x, .axis-y {
+      position: absolute;
+      background: var(--axis);
+      z-index: 1;
+    }
+
+    .axis-x { left: 90px; right: 24px; bottom: 70px; height: 3px; }
+    .axis-y { top: 24px; bottom: 70px; left: 90px; width: 3px; }
+
+    .axis-x::after,
+    .axis-y::after {
+      content: "";
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+
+    .axis-x::after {
+      right: -8px;
+      top: -5px;
+      border-width: 6px 0 6px 9px;
+      border-color: transparent transparent transparent var(--axis);
+    }
+
+    .axis-y::after {
+      top: -8px;
+      left: -5px;
+      border-width: 0 6px 9px 6px;
+      border-color: transparent transparent var(--axis) transparent;
+    }
+
+    .label-x, .label-y {
+      position: absolute;
+      color: #405071;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 1;
+    }
+
+    .label-x { bottom: 38px; left: 50%; transform: translateX(-50%); }
+    .label-y { left: 20px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: left top; }
+
+    .point {
+      position: absolute;
+      z-index: 3;
+    }
+
+    .pin {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid #2d3f66;
+      background: #ffffff;
+      color: #24324f;
+      font-size: 11px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .comment-box {
+      position: absolute;
+      left: 22px;
+      top: -4px;
+      min-width: 235px;
+      max-width: 320px;
+      background: var(--sticky-yellow);
+      border: 1px solid rgba(111, 96, 15, 0.28);
+      border-radius: 4px;
+      box-shadow: 0 11px 20px rgba(40, 44, 60, 0.18);
+      padding: 10px 12px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-4px) rotate(-1.1deg);
+      transition: .18s ease;
+      pointer-events: none;
+    }
+
+    .comment-box::before {
+      content: "";
+      position: absolute;
+      width: 54px;
+      height: 14px;
+      top: -8px;
+      left: 14px;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(94, 104, 130, 0.16);
+      transform: rotate(-4deg);
+    }
+
+    .point:nth-child(2n) .comment-box { background: var(--sticky-blue); }
+    .point:nth-child(3n) .comment-box { background: var(--sticky-green); }
+    .point:nth-child(5n) .comment-box { background: var(--sticky-pink); }
+
+    .point.right .comment-box { left: auto; right: 22px; }
+    .point.down .comment-box { top: 22px; }
+
+    .comment-title {
+      margin: 0 0 6px;
+      color: #344161;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+    }
+
+    .comment-list {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #1f2744;
+      white-space: pre-wrap;
+    }
+
+    .pin:hover + .comment-box,
+    .point:focus-within .comment-box,
+    .point.persist .comment-box {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) rotate(-1.1deg);
+      pointer-events: auto;
+    }
+
+    @media (max-width: 920px) {
+      .matrix { height: 760px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <div>
+        <h1>Matrice con commenti numerati</h1>
+        <p>Passa sul numerino per vedere il commento. Usa il bottone per mostrarli/nasconderli tutti.</p>
+      </div>
+      <button id="toggleAll" class="toggle-all" aria-pressed="false">Mostra tutti i commenti</button>
+    </header>
+
+    <section class="matrix-wrap">
+      <div class="matrix" id="matrix">
+        <div class="axis-x"></div>
+        <div class="axis-y"></div>
+        <div class="label-x">Impatto business</div>
+        <div class="label-y">Complessità / effort</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const commentThreads = [
+      { id: "1", comments: [{ body: "- countries to be addressed\n" }] },
+      { id: "2", comments: [
+        { body: "- VA for users outside the HR department, interpreting rightly the Q, and asking proper follow-up question\n" },
+        { body: "- High time consuming\n" },
+        { body: "Wave 1: better questions.\nWave 2: automatic answers.\n" }
+      ]},
+      { id: "3", comments: [{ body: "looking for documents, answer question with information present on document\n" }] },
+      { id: "4", comments: [{ body: "question from customer through salesforce. Retrieve documents (75%) + data\n" }] },
+      { id: "5", comments: [{ body: "- structure information from resume (and interview)\n- bring the application and say \"do i have anyone\"\n" }] },
+      { id: "6", comments: [{ body: "- prioritize the invoice/claims\n- agent supporting the user, eventually preparing the email to send\n" }] },
+      { id: "7", comments: [{ body: "huge effort on retrieving the right data\n" }] },
+      { id: "8", comments: [{ body: "- digitalization of values stream map (better organize data)\n- optimize lead time\n\n" }] },
+      { id: "9", comments: [{ body: "article never asked before. Last hours to weeks. Simplify process. Check past similar articles (and all the info). \n" }] },
+      { id: "10", comments: [{ body: "automation of receiving orders and providing feedback to the customers\n\n" }] }
+    ];
+
+    // Posizionamento fisso in matrice (percentuali del canvas), per mantenere layout stabile.
+    const positions = {
+      "1":  { x: 18, y: 18, side: "", down: false },
+      "2":  { x: 35, y: 14, side: "", down: false },
+      "3":  { x: 24, y: 34, side: "", down: false },
+      "4":  { x: 44, y: 30, side: "", down: false },
+      "5":  { x: 32, y: 52, side: "", down: false },
+      "6":  { x: 55, y: 48, side: "", down: false },
+      "7":  { x: 67, y: 38, side: "right", down: false },
+      "8":  { x: 62, y: 22, side: "right", down: false },
+      "9":  { x: 77, y: 26, side: "right", down: true },
+      "10": { x: 82, y: 56, side: "right", down: false }
+    };
+
+    const matrix = document.getElementById('matrix');
+    const points = [];
+
+    commentThreads.forEach(thread => {
+      const p = positions[thread.id] || { x: 50, y: 50, side: "", down: false };
+      const point = document.createElement('div');
+      point.className = `point ${p.side} ${p.down ? 'down' : ''}`.trim();
+      point.style.left = `${p.x}%`;
+      point.style.top = `${p.y}%`;
+
+      point.innerHTML = `
+        <span class="pin" tabindex="0" aria-label="Commento ${thread.id}">${thread.id}</span>
+        <div class="comment-box" role="note" aria-label="Thread commenti ${thread.id}">
+          <p class="comment-title">Commento #${thread.id}</p>
+          <ul class="comment-list">
+            ${thread.comments.map(c => `<li>${c.body.trim()}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+
+      matrix.appendChild(point);
+      points.push(point);
+    });
+
+    const toggle = document.getElementById('toggleAll');
+    let openAll = false;
+
+    toggle.addEventListener('click', () => {
+      openAll = !openAll;
+      points.forEach(point => point.classList.toggle('persist', openAll));
+      toggle.textContent = openAll ? 'Nascondi tutti i commenti' : 'Mostra tutti i commenti';
+      toggle.setAttribute('aria-pressed', String(openAll));
+    });
+  </script>
+</body>
+</html>
