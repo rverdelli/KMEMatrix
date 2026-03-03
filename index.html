@@ -3,254 +3,262 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interfaccia con commenti contestuali</title>
+  <title>Matrice con commenti</title>
   <style>
     :root {
-      --bg: #f4f6fb;
-      --panel: #ffffff;
-      --ink: #1f2a44;
-      --muted: #6f7a90;
-      --accent: #4b67ff;
-      --accent-2: #e8ecff;
-      --line: #dde3f2;
+      --bg: #f3f6fb;
+      --text: #1f2a44;
+      --muted: #5f6f8d;
+      --line: #b8c3d8;
+      --accent: #2f62ff;
+      --bubble: #ffffff;
+      --bubble-line: #c9d6ff;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
+      background: var(--bg);
+      color: var(--text);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: linear-gradient(180deg, #f7f8fd, var(--bg));
-      color: var(--ink);
-      min-height: 100vh;
-      padding: 24px;
+      padding: 20px;
     }
 
-    .wrapper {
+    .page {
       max-width: 1200px;
       margin: 0 auto;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(31, 42, 68, 0.08);
+      background: #fff;
+      border: 1px solid #d9e1f2;
+      border-radius: 14px;
       overflow: hidden;
+      box-shadow: 0 8px 24px rgba(31, 42, 68, 0.08);
     }
 
-    .topbar {
-      padding: 18px 22px;
+    .header {
+      padding: 14px 18px;
+      border-bottom: 1px solid #d9e1f2;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--line);
-      background: #fbfcff;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
-    .title {
-      margin: 0;
+    .header h1 {
       font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
+      margin: 0;
     }
 
-    .subtitle {
+    .header p {
       margin: 4px 0 0;
       font-size: 13px;
       color: var(--muted);
     }
 
     .toggle-all {
-      border: 1px solid #cfd7ff;
-      background: var(--accent-2);
-      color: #233bb9;
+      border: 1px solid #b7c8ff;
+      background: #e8efff;
+      color: #2741b9;
+      border-radius: 8px;
       font-weight: 600;
-      border-radius: 10px;
-      padding: 10px 14px;
+      padding: 8px 12px;
       cursor: pointer;
-      transition: all .2s ease;
     }
 
-    .toggle-all:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(75, 103, 255, 0.18);
+    .matrix-wrap {
+      padding: 18px;
     }
 
-    .canvas {
-      padding: 24px;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      background:
-        radial-gradient(circle at 10% 10%, rgba(75,103,255,0.05) 0, transparent 35%),
-        radial-gradient(circle at 90% 90%, rgba(58,184,124,0.07) 0, transparent 30%),
-        white;
-    }
-
-    .card {
+    .matrix {
       position: relative;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 16px 16px 22px;
-      min-height: 120px;
-      background: linear-gradient(180deg, #fff, #fdfdff);
+      height: 640px;
+      border: 1px solid #dbe3f4;
+      border-radius: 12px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(240,245,255,0.9), rgba(255,255,255,0.9)),
+        repeating-linear-gradient(0deg, #f5f8ff 0 44px, #ffffff 44px 88px),
+        repeating-linear-gradient(90deg, #f6f9ff 0 44px, #ffffff 44px 88px);
     }
 
-    .card h3 {
-      margin: 0 0 10px;
-      font-size: 15px;
+    .axis-x, .axis-y {
+      position: absolute;
+      background: var(--line);
+      z-index: 1;
     }
 
-    .card p {
-      margin: 0;
+    .axis-x { left: 90px; right: 24px; bottom: 70px; height: 2px; }
+    .axis-y { top: 24px; bottom: 70px; left: 90px; width: 2px; }
+
+    .label-x, .label-y {
+      position: absolute;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-      max-width: 90%;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 1;
+    }
+
+    .label-x { bottom: 38px; left: 50%; transform: translateX(-50%); }
+    .label-y { left: 20px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: left top; }
+
+    .point {
+      position: absolute;
+      z-index: 3;
     }
 
     .pin {
-      position: absolute;
-      right: 10px;
-      top: 10px;
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      border: 1px solid #b9c5ff;
-      background: #eef2ff;
-      color: #1f3ad8;
+      border: 1px solid #99afff;
+      background: #e8eeff;
+      color: #2549d4;
       font-size: 11px;
       font-weight: 700;
       display: grid;
       place-items: center;
       cursor: pointer;
-      z-index: 3;
       user-select: none;
     }
 
     .comment-box {
       position: absolute;
-      top: 36px;
-      right: 10px;
-      width: min(320px, 86vw);
-      border: 1px solid #cfd7ff;
-      background: #ffffff;
+      left: 22px;
+      top: -4px;
+      min-width: 220px;
+      max-width: 320px;
+      background: var(--bubble);
+      border: 1px solid var(--bubble-line);
       border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(44, 66, 170, 0.16);
-      padding: 10px 12px;
+      box-shadow: 0 8px 20px rgba(47, 98, 255, 0.16);
+      padding: 8px 10px;
       opacity: 0;
       visibility: hidden;
       transform: translateY(-4px);
-      transition: opacity .18s ease, transform .18s ease, visibility .18s;
-      z-index: 2;
+      transition: .18s ease;
+      pointer-events: none;
     }
 
+    .point.right .comment-box { left: auto; right: 22px; }
+    .point.down .comment-box { top: 22px; }
+
     .comment-title {
-      font-size: 11px;
-      color: #4053a8;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .5px;
       margin: 0 0 6px;
+      color: #3c4fa7;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      text-transform: uppercase;
     }
 
     .comment-list {
       margin: 0;
-      padding-left: 18px;
+      padding-left: 16px;
       font-size: 12px;
-      color: #2f3b63;
       line-height: 1.4;
+      color: #2c3559;
       white-space: pre-wrap;
     }
 
     .pin:hover + .comment-box,
-    .card:focus-within .comment-box,
-    .card.persist .comment-box {
+    .point:focus-within .comment-box,
+    .point.persist .comment-box {
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
+      pointer-events: auto;
     }
 
-    @media (max-width: 900px) {
-      .canvas { grid-template-columns: 1fr; }
+    @media (max-width: 920px) {
+      .matrix { height: 760px; }
     }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <div class="topbar">
+  <main class="page">
+    <header class="header">
       <div>
-        <h1 class="title">Mockup interfaccia con note/commenti</h1>
-        <p class="subtitle">Passa il mouse sui numerini piccoli per vedere il contenuto del commento.</p>
+        <h1>Matrice con commenti numerati</h1>
+        <p>Passa sul numerino per vedere il commento. Usa il bottone per mostrarli/nasconderli tutti.</p>
       </div>
       <button id="toggleAll" class="toggle-all" aria-pressed="false">Mostra tutti i commenti</button>
-    </div>
+    </header>
 
-    <section class="canvas" id="canvas"></section>
-  </div>
+    <section class="matrix-wrap">
+      <div class="matrix" id="matrix">
+        <div class="axis-x"></div>
+        <div class="axis-y"></div>
+        <div class="label-x">Complessità / effort</div>
+        <div class="label-y">Impatto business</div>
+      </div>
+    </section>
+  </main>
 
   <script>
-    const commentData = {
-      commentThreads: [
-        { id: "1", comments: [{ body: "- countries to be addressed\n" }] },
-        { id: "2", comments: [
-          { body: "- VA for users outside the HR department, interpreting rightly the Q, and asking proper follow-up question\n" },
-          { body: "- High time consuming\n" },
-          { body: "Wave 1: better questions.\nWave 2: automatic answers.\n" }
-        ]},
-        { id: "3", comments: [{ body: "looking for documents, answer question with information present on document\n" }] },
-        { id: "4", comments: [{ body: "question from customer through salesforce. Retrieve documents (75%) + data\n" }] },
-        { id: "5", comments: [{ body: "- structure information from resume (and interview)\n- bring the application and say \"do i have anyone\"\n" }] },
-        { id: "6", comments: [{ body: "- prioritize the invoice/claims\n- agent supporting the user, eventually preparing the email to send\n" }] },
-        { id: "7", comments: [{ body: "huge effort on retrieving the right data\n" }] },
-        { id: "8", comments: [{ body: "- digitalization of values stream map (better organize data)\n- optimize lead time\n\n" }] },
-        { id: "9", comments: [{ body: "article never asked before. Last hours to weeks. Simplify process. Check past similar articles (and all the info). \n" }] },
-        { id: "10", comments: [{ body: "automation of receiving orders and providing feedback to the customers\n\n" }] }
-      ]
-    };
-
-    const sections = [
-      "Countries to be addressed",
-      "Virtual Assistant HR",
-      "Document Q&A",
-      "Customer requests from Salesforce",
-      "CV and application matching",
-      "Invoice/claim prioritization",
-      "Data retrieval complexity",
-      "Value stream digitalization",
-      "New article creation",
-      "Order feedback automation"
+    const commentThreads = [
+      { id: "1", comments: [{ body: "- countries to be addressed\n" }] },
+      { id: "2", comments: [
+        { body: "- VA for users outside the HR department, interpreting rightly the Q, and asking proper follow-up question\n" },
+        { body: "- High time consuming\n" },
+        { body: "Wave 1: better questions.\nWave 2: automatic answers.\n" }
+      ]},
+      { id: "3", comments: [{ body: "looking for documents, answer question with information present on document\n" }] },
+      { id: "4", comments: [{ body: "question from customer through salesforce. Retrieve documents (75%) + data\n" }] },
+      { id: "5", comments: [{ body: "- structure information from resume (and interview)\n- bring the application and say \"do i have anyone\"\n" }] },
+      { id: "6", comments: [{ body: "- prioritize the invoice/claims\n- agent supporting the user, eventually preparing the email to send\n" }] },
+      { id: "7", comments: [{ body: "huge effort on retrieving the right data\n" }] },
+      { id: "8", comments: [{ body: "- digitalization of values stream map (better organize data)\n- optimize lead time\n\n" }] },
+      { id: "9", comments: [{ body: "article never asked before. Last hours to weeks. Simplify process. Check past similar articles (and all the info). \n" }] },
+      { id: "10", comments: [{ body: "automation of receiving orders and providing feedback to the customers\n\n" }] }
     ];
 
-    const canvas = document.getElementById('canvas');
-    const cards = [];
+    // Posizionamento fisso in matrice (percentuali del canvas), per mantenere layout stabile.
+    const positions = {
+      "1":  { x: 18, y: 18, side: "", down: false },
+      "2":  { x: 35, y: 14, side: "", down: false },
+      "3":  { x: 24, y: 34, side: "", down: false },
+      "4":  { x: 44, y: 30, side: "", down: false },
+      "5":  { x: 32, y: 52, side: "", down: false },
+      "6":  { x: 55, y: 48, side: "", down: false },
+      "7":  { x: 67, y: 38, side: "right", down: false },
+      "8":  { x: 62, y: 22, side: "right", down: false },
+      "9":  { x: 77, y: 26, side: "right", down: true },
+      "10": { x: 82, y: 56, side: "right", down: false }
+    };
 
-    commentData.commentThreads.forEach((thread, idx) => {
-      const card = document.createElement('article');
-      card.className = 'card';
-      card.innerHTML = `
-        <h3>${sections[idx] || `Sezione ${thread.id}`}</h3>
-        <p>Area dimostrativa dell'interfaccia. Il numerino in alto a destra rappresenta il thread di commenti collegato.</p>
+    const matrix = document.getElementById('matrix');
+    const points = [];
+
+    commentThreads.forEach(thread => {
+      const p = positions[thread.id] || { x: 50, y: 50, side: "", down: false };
+      const point = document.createElement('div');
+      point.className = `point ${p.side} ${p.down ? 'down' : ''}`.trim();
+      point.style.left = `${p.x}%`;
+      point.style.top = `${p.y}%`;
+
+      point.innerHTML = `
         <span class="pin" tabindex="0" aria-label="Commento ${thread.id}">${thread.id}</span>
-        <div class="comment-box" role="note" aria-label="Comment thread ${thread.id}">
+        <div class="comment-box" role="note" aria-label="Thread commenti ${thread.id}">
           <p class="comment-title">Commento #${thread.id}</p>
           <ul class="comment-list">
             ${thread.comments.map(c => `<li>${c.body.trim()}</li>`).join('')}
           </ul>
         </div>
       `;
-      canvas.appendChild(card);
-      cards.push(card);
+
+      matrix.appendChild(point);
+      points.push(point);
     });
 
-    const toggleBtn = document.getElementById('toggleAll');
-    let allVisible = false;
+    const toggle = document.getElementById('toggleAll');
+    let openAll = false;
 
-    toggleBtn.addEventListener('click', () => {
-      allVisible = !allVisible;
-      cards.forEach(card => card.classList.toggle('persist', allVisible));
-      toggleBtn.textContent = allVisible ? 'Nascondi tutti i commenti' : 'Mostra tutti i commenti';
-      toggleBtn.setAttribute('aria-pressed', String(allVisible));
+    toggle.addEventListener('click', () => {
+      openAll = !openAll;
+      points.forEach(point => point.classList.toggle('persist', openAll));
+      toggle.textContent = openAll ? 'Nascondi tutti i commenti' : 'Mostra tutti i commenti';
+      toggle.setAttribute('aria-pressed', String(openAll));
     });
   </script>
 </body>
